@@ -83,6 +83,8 @@ typedef struct {
 /** I2C Status Register Flags */
 #define I2C_DISABLE_SR  	RESET
 #define I2C_ENABLE_SR   	SET
+/** I2C Event Names */
+#define I2C_EVENT_STOP 1U
 
 void I2C_PeriClockControl(I2C_RegDef_t *pI2Cx, uint8_t EnorDi); 
 void I2C_Init(I2C_Handle_t *pI2CHandle);

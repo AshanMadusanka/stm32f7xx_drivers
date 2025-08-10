@@ -292,6 +292,8 @@ void I2C_EV_IRQHandler(I2C_Handle_t *pI2CHandle) {
         // Reset state
         pI2CHandle->TxRxState = I2C_READY;
         // Optionally, call application callback here
+        I2C_ApplicationEventCallback(pI2CHandle, I2C_EVENT_STOP);
+
     }
 
     // 4. Handle NACKF (NACK received)
