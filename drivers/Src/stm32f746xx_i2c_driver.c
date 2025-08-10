@@ -1,3 +1,4 @@
+
 //
 // Created by ashan on 27/06/2025.
 //
@@ -263,4 +264,102 @@ void I2C_IRQInterruptConfig(I2C_Handle_t *pI2CHandle, uint8_t EnorDi) {
 void I2C_IRQPriorityConfig(I2C_Handle_t *pI2CHandle, uint32_t IRQPriority) {
     // Set the IRQ priority for the I2C peripheral
     NVIC_SetPriority(pI2CHandle->IRQn, IRQPriority);
+}
+
+void I2C_EV_IRQHandler(I2C_Handle_t *pI2CHandle) {
+    uint32_t isr = pI2CHandle->pI2Cx->ISR;
+
+    // 1. Handle TXIS (Transmit interrupt status, ready to send next byte)
+    if (isr & (1U << I2C_ISR_TXIS)) {
+        if (pI2CHandle->TxRxState == I2C_BUSY_IN_TX && pI2CHandle->TxLen > 0) {
+            pI2CHandle->pI2Cx->TXDR = *(pI2CHandle->pTxBuffer++);
+            pI2CHandle->TxLen--;
+        }
+    }
+
+    // 2. Handle RXNE (Receive buffer not empty)
+    if (isr & (1U << I2C_ISR_RXNE)) {
+        if (pI2CHandle->TxRxState == I2C_BUSY_IN_RX && pI2CHandle->RxLen > 0) {
+            *(pI2CHandle->pRxBuffer++) = (uint8_t)pI2CHandle->pI2Cx->RXDR;
+            pI2CHandle->RxLen--;
+        }
+    }
+
+    // 3. Handle STOPF (Stop detection flag)
+    if (isr & (1U << I2C_ISR_STOPF)) {
+        // Clear STOPF by writing 1 to it in ICR
+        pI2CHandle->pI2Cx->ICR |= (1U << I2C_ISR_STOPF);
+        // Reset state
+        pI2CHandle->TxRxState = I2C_READY;
+        // Optionally, call application callback here
+    }
+
+    // 4. Handle NACKF (NACK received)
+    if (isr & (1U << I2C_ISR_NACKF)) {
+        // Clear NACKF by writing 1 to it in ICR
+        pI2CHandle->pI2Cx->ICR |= (1U << I2C_ISR_NACKF);
+        // Optionally, handle NACK error (reset state, callback, etc.)
+        pI2CHandle->TxRxState = I2C_READY;
+    }
+
+    // 5. Handle TXE (Transmit buffer empty, legacy)
+    if (isr & (1U << I2C_ISR_TXE)) {
+        // Do nothing, handled by TXIS
+    }
+
+    // 6. Handle TC (Transfer Complete)
+    if (isr & (1U << I2C_ISR_TC)) {
+        // Optionally, handle transfer complete (for RELOAD mode)
+    }
+
+    // 7. Handle errors (BERR, ARLO, OVR, etc.)
+    if (isr & (1U << I2C_ISR_BERR)) {
+        pI2CHandle->pI2Cx->ICR |= (1U << I2C_ISR_BERR);
+        pI2CHandle->TxRxState = I2C_READY;
+    }
+    if (isr & (1U << I2C_ISR_ARLO)) {
+        pI2CHandle->pI2Cx->ICR |= (1U << I2C_ISR_ARLO);
+        pI2CHandle->TxRxState = I2C_READY;
+    }
+    if (isr & (1U << I2C_ISR_OVR)) {
+        pI2CHandle->pI2Cx->ICR |= (1U << I2C_ISR_OVR);
+        pI2CHandle->TxRxState = I2C_READY;
+    }
+    // Add more error handling as needed
+}
+
+void I2C_ER_IRQHandler(I2C_Handle_t *pI2CHandle) {
+    uint32_t isr = pI2CHandle->pI2Cx->ISR;
+
+    // Bus error
+    if (isr & (1U << I2C_ISR_BERR)) {
+        pI2CHandle->pI2Cx->ICR |= (1U << I2C_ISR_BERR);
+        pI2CHandle->TxRxState = I2C_READY;
+    }
+    // Arbitration lost
+    if (isr & (1U << I2C_ISR_ARLO)) {
+        pI2CHandle->pI2Cx->ICR |= (1U << I2C_ISR_ARLO);
+        pI2CHandle->TxRxState = I2C_READY;
+    }
+    // Overrun/Underrun
+    if (isr & (1U << I2C_ISR_OVR)) {
+        pI2CHandle->pI2Cx->ICR |= (1U << I2C_ISR_OVR);
+        pI2CHandle->TxRxState = I2C_READY;
+    }
+    // PEC error
+    if (isr & (1U << I2C_ISR_PECERR)) {
+        pI2CHandle->pI2Cx->ICR |= (1U << I2C_ISR_PECERR);
+        pI2CHandle->TxRxState = I2C_READY;
+    }
+    // Timeout
+    if (isr & (1U << I2C_ISR_TIMEOUT)) {
+        pI2CHandle->pI2Cx->ICR |= (1U << I2C_ISR_TIMEOUT);
+        pI2CHandle->TxRxState = I2C_READY;
+    }
+    // SMBus alert
+    if (isr & (1U << I2C_ISR_ALERT)) {
+        pI2CHandle->pI2Cx->ICR |= (1U << I2C_ISR_ALERT);
+        pI2CHandle->TxRxState = I2C_READY;
+    }
+    // Optionally, call application error callback here
 }
