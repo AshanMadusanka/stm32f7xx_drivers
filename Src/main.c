@@ -63,7 +63,7 @@ void Delay() {
 int main(void) {
 
     uint8_t commandcode;
-
+    printf("I2C Start \n");
 	uint8_t len;
 
     // Initialize the GPIO pins for I2C

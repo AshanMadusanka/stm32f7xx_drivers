@@ -204,10 +204,63 @@ uint8_t I2C_GetFlagStatus(I2C_RegDef_t *pI2Cx, uint32_t FlagName) {
 }
 
 void I2C_MasterSendDataIT(I2C_Handle_t *pI2CHandle, uint8_t *pTxBuffer, uint32_t Len, uint8_t SlaveAddr, uint8_t SrOrStop){
+    // 1. Save the Tx buffer and length to the handle for use in ISR
+    pI2CHandle->pTxBuffer = pTxBuffer;
+    pI2CHandle->TxLen = Len;
+    pI2CHandle->TxRxState = I2C_BUSY_IN_TX;
+    pI2CHandle->DevAddr = SlaveAddr;
+    pI2CHandle->Sr = SrOrStop;
 
+    // 2. Configure CR2 for address, nbytes, direction (write)
+    uint32_t temp = pI2CHandle->pI2Cx->CR2;
+    temp &= ~((0x7F << I2C_CR2_SADD) | (0xFF << I2C_CR2_NBYTES) | (1U << I2C_CR2_RD_WRN));
+    temp |= ((SlaveAddr << 1) << I2C_CR2_SADD);
+    temp |= (Len << I2C_CR2_NBYTES);
+    temp &= ~(1U << I2C_CR2_RD_WRN); // Write
+    temp |= (1U << I2C_CR2_AUTOEND); // Auto-end
+    pI2CHandle->pI2Cx->CR2 = temp;
 
+    // 3. Enable I2C interrupts: TXIE, STOPIE, NACKIE, ERRIE
+    pI2CHandle->pI2Cx->CR1 |= (1U << I2C_CR1_TXIE) | (1U << I2C_CR1_STOPIE) | (1U << I2C_CR1_NACKIE) | (1U << I2C_CR1_ERRIE);
+
+    // 4. Generate START
+    I2C_GenerateStartCondition(pI2CHandle->pI2Cx);
 }
 void I2C_MasterReceiveDataIT(I2C_Handle_t *pI2CHandle, uint8_t *pRxBuffer, uint32_t Len, uint8_t SlaveAddr, uint8_t SrOrStop){
+    // 1. Save the Rx buffer and length to the handle for use in ISR
+    pI2CHandle->pRxBuffer = pRxBuffer;
+    pI2CHandle->RxLen = Len;
+    pI2CHandle->TxRxState = I2C_BUSY_IN_RX;
+    pI2CHandle->DevAddr = SlaveAddr;
+    pI2CHandle->Sr = SrOrStop;
 
-    
+    // 2. Configure CR2 for address, nbytes, direction (read)
+    uint32_t temp = pI2CHandle->pI2Cx->CR2;
+    temp &= ~((0x7F << I2C_CR2_SADD) | (0xFF << I2C_CR2_NBYTES) | (1U << I2C_CR2_RD_WRN));
+    temp |= ((SlaveAddr << 1) << I2C_CR2_SADD);
+    temp |= (Len << I2C_CR2_NBYTES);
+    temp |= (1U << I2C_CR2_RD_WRN); // Read
+    temp |= (1U << I2C_CR2_AUTOEND); // Auto-end
+    pI2CHandle->pI2Cx->CR2 = temp;
+
+    // 3. Enable I2C interrupts: RXIE, STOPIE, NACKIE, ERRIE
+    pI2CHandle->pI2Cx->CR1 |= (1U << I2C_CR1_RXIE) | (1U << I2C_CR1_STOPIE) | (1U << I2C_CR1_NACKIE) | (1U << I2C_CR1_ERRIE);
+
+    // 4. Generate START
+    I2C_GenerateStartCondition(pI2CHandle->pI2Cx);
+}
+
+void I2C_IRQInterruptConfig(I2C_Handle_t *pI2CHandle, uint8_t EnorDi) {
+    if (EnorDi == ENABLE) {
+        // Enable the I2C interrupt
+        NVIC_EnableIRQ(pI2CHandle->IRQn);
+    } else {
+        // Disable the I2C interrupt
+        NVIC_DisableIRQ(pI2CHandle->IRQn);
+    }
+}
+
+void I2C_IRQPriorityConfig(I2C_Handle_t *pI2CHandle, uint32_t IRQPriority) {
+    // Set the IRQ priority for the I2C peripheral
+    NVIC_SetPriority(pI2CHandle->IRQn, IRQPriority);
 }
