@@ -21,6 +21,7 @@
 	 uint8_t  USART_Parity;        /* @USART_Parity */
 	 uint8_t  USART_StopBits;      /* @USART_StopBits */
 	 uint8_t  USART_HwFlowCtl;     /* @USART_HWFlow */
+	 uint8_t  USART_OverSampling;  /* @USART_OverSampling */
 
  } USART_Config_t;
 
