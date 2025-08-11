@@ -487,7 +487,85 @@ typedef struct {
 #define I2C_TIMINGR_SCLDEL  20U
 #define I2C_TIMINGR_PRESC   28U
 
+
+/* ======================== Bit position macros (USART) ======================== */
+ /* CR1 */
+ #define USART_CR1_UE        0U
+ #define USART_CR1_RES       1U
+ #define USART_CR1_RE        2U
+ #define USART_CR1_TE        3U
+ #define USART_CR1_IDLEIE    4U
+ #define USART_CR1_RXNEIE    5U
+ #define USART_CR1_TCIE      6U
+ #define USART_CR1_TXEIE     7U
+ #define USART_CR1_PEIE      8U
+ #define USART_CR1_PS        9U
+ #define USART_CR1_PCE       10U
+ #define USART_CR1_WAKE      11U
+ #define USART_CR1_M         12U
+ #define USART_CR1_UE        13U
+ #define USART_CR1_CMIE      14U
+ #define USART_CR1_OVER8     15U
+ #define USART_CR1_DEDT      16U
+ #define USART_CR1_DEAT      21U
+ #define USART_CR1_RTOIE     26U
+ #define USART_CR1_EOBIE     27U
+ #define USART_CR1_M1        28U
+
+
+ /* CR2 */
+ #define USART_CR2_ADDM7     4U
+ #define USART_CR2_LBDL      5U
+ #define USART_CR2_LBDIE     6U
+ #define USART_CR2_LBCL      8U
+ #define USART_CR2_CPHA      9U
+ #define USART_CR2_CPOL      10U
+ #define USART_CR2_CLKEN     11U
+ #define USART_CR2_STOP      12U  /* STOP[13:12] */
+ #define USART_CR2_LINEN     14U
+ #define USART_CR2_SWAP      15U
+
+
+ /* CR3 */
+ #define USART_CR3_EIE       0U
+ #define USART_CR3_IREN      1U
+ #define USART_CR3_IRLP      2U
+ #define USART_CR3_HDSEL     3U
+ #define USART_CR3_NACK      4U
+ #define USART_CR3_SCEN      5U
+ #define USART_CR3_DMAR      6U
+ #define USART_CR3_DMAT      7U
+ #define USART_CR3_RTSE      8U
+ #define USART_CR3_CTSE      9U
+ #define USART_CR3_CTSIE     10U
+ #define USART_CR3_ONEBIT    11U
+
+ /* ISR */
+ #define USART_ISR_PE        0U
+ #define USART_ISR_FE        1U
+ #define USART_ISR_NE        2U
+ #define USART_ISR_ORE       3U
+ #define USART_ISR_IDLE      4U
+ #define USART_ISR_RXNE      5U
+ #define USART_ISR_TC        6U
+ #define USART_ISR_TXE       7U
+ #define USART_ISR_LBD       8U
+ #define USART_ISR_CTSIF     9U
+ #define USART_ISR_CTS       10U
+
+ /* ICR */
+ #define USART_ICR_PECF      0U
+ #define USART_ICR_FECF      1U
+ #define USART_ICR_NECF      2U
+ #define USART_ICR_ORECF     3U
+ #define USART_ICR_IDLECF    4U
+ #define USART_ICR_TCCF      6U
+ #define USART_ICR_LBDCF     8U
+ #define USART_ICR_CTSCF     9U
+
+
 #include "stm32f746xx_gpio_driver.h"
 #include "stm32f746xx_i2c_driver.h"
 #include "stm32f746xx_spi_driver.h"
+#include "stm32f746xx_usart_driver.h"
 #endif //STM32F746XX_H
